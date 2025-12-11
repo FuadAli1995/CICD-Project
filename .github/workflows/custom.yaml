@@ -1,7 +1,8 @@
-name: CI pipeline (push only)
+name: CI pipeline (push + PR)
 
 on:
   push:
+  pull_request:
 
 jobs:
   ci-checks:
@@ -11,7 +12,6 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v4
-
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -29,7 +29,6 @@ jobs:
     - name: Run unit tests
       run: pytest
 
-    
     - name: Docker build test
       run: docker build -t test-image -f Dockerfile .
 
@@ -37,8 +36,9 @@ jobs:
     name: Build and Publish Docker Image
     needs: ci-checks
     runs-on: ubuntu-latest
-    
-    if: github.ref == 'refs/heads/main'
+
+
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     permissions:
       id-token: write
@@ -62,4 +62,5 @@ jobs:
 
         docker build -t $tag -f Dockerfile .
         docker push $tag
+
 
